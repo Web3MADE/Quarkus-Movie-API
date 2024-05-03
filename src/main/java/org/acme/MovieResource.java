@@ -1,16 +1,20 @@
 package org.acme;
 
+import java.net.URI;
+
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.pgclient.PgPool;
 import jakarta.annotation.PostConstruct;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.core.Response;
 
 @Path("movies")
+// resource is the class that handles the HTTP requests/endpoint
 public class MovieResource {
     
     @Inject
@@ -31,6 +35,15 @@ public class MovieResource {
                 .onItem()
                 // builds the response
                 .transform(Response.ResponseBuilder::build);
+    }
+
+    @POST
+    public Uni<Response> create(Movie movie) {
+        return Movie.save(client, movie.getTitle())
+                .onItem()
+                .transform(id -> URI.create("/movies/" + id))
+                .onItem()
+                .transform(uri -> Response.created(uri).build());
     }
 
     @PostConstruct

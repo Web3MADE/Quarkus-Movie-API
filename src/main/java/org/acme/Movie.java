@@ -31,6 +31,14 @@ public class Movie {
                 // transforms the set of rows into a Uni
                 .transform(m -> m.iterator().hasNext() ? from(m.iterator().next()) : null);
     }
+
+    public static Uni<Long> save(PgPool client, String title) {
+        return client
+                .preparedQuery("INSERT INTO movies (title) VALUES ($1) RETURNING id")
+                .execute(Tuple.of(title))
+                .onItem()
+                .transform(m -> m.iterator().next().getLong("id"));
+    }
     private static Movie from(Row row) {
         return new Movie(row.getLong("id"), row.getString("title"));
     }
