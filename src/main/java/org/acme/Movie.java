@@ -39,6 +39,16 @@ public class Movie {
                 .onItem()
                 .transform(m -> m.iterator().next().getLong("id"));
     }
+
+    public static Uni<Boolean> delete(PgPool client, Long id) {
+        return client
+                .preparedQuery("DELETE FROM movies WHERE id = $1")
+                .execute(Tuple.of(id))
+                .onItem()
+                // if row count is 1, the movie was deleted and return true
+                .transform(m -> m.rowCount() == 1);
+    }
+
     private static Movie from(Row row) {
         return new Movie(row.getLong("id"), row.getString("title"));
     }
